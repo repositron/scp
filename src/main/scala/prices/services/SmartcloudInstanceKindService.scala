@@ -6,6 +6,7 @@ import org.http4s._
 import org.http4s.circe._
 
 import prices.data._
+import prices.client._
 
 object SmartcloudInstanceKindService {
 
@@ -24,10 +25,11 @@ object SmartcloudInstanceKindService {
 
     val getAllUri = s"${config.baseUri}/instances"
 
-    override def getAll(): F[List[InstanceKind]] =
+    override def getAll(): F[List[InstanceKind]] = {
       List("sc2-micro", "sc2-small", "sc2-medium") // Dummy data. Your implementation should call the smartcloud API.
         .map(InstanceKind)
         .pure[F]
+    }
 
   }
 

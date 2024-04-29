@@ -1,0 +1,28 @@
+version: '3.6'
+
+networks:
+  app: {}
+
+services:
+
+  redis:
+    restart: always
+    image: redis:6.0.8
+    ports:
+      - "6379:6379"
+    environment:
+      - DEBUG=false
+    networks:
+      - app
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+
+
+  smartcloud:
+    restart: always
+    image: smartpayco/smartcloud:latest
+    ports:
+      - "9999:9999"
