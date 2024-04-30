@@ -1,14 +1,13 @@
 package prices
 
-import cats.effect._
-import com.comcast.ip4s._
+import cats.effect.*
+import com.comcast.ip4s.*
 import fs2.Stream
-import org.http4s.HttpApp
 import org.http4s.ember.server.EmberServerBuilder
-import org.http4s.server.middleware.{Logger, RequestLogger, ResponseLogger}
+import org.http4s.server.middleware.Logger
 import org.typelevel.log4cats.LoggerFactory
 import org.typelevel.log4cats.slf4j.Slf4jFactory
-import prices.config.Config
+import prices.config.Config.*
 import prices.routes.InstanceKindRoutes
 import prices.services.SmartcloudInstanceKindService
 
@@ -16,7 +15,7 @@ object Server {
 
   def serve(config: Config): Stream[IO, ExitCode] = {
 
-    implicit val logging: LoggerFactory[IO] = Slf4jFactory.create[IO]
+    given LoggerFactory[IO] = Slf4jFactory.create[IO]
 
     val instanceKindService = SmartcloudInstanceKindService.make[IO](
       SmartcloudInstanceKindService.Config(

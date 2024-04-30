@@ -9,14 +9,11 @@ object Dependencies {
     val circe      = "0.14.7"
     val pureConfig = "0.17.6"
     val log4cats   = "2.6.0"
-    val logBackVersion = "1.5.6"
-
+    val logBack    = "1.5.6"
+    val slf4j      = "2.0.12"
     // Test
-    val munit = "0.7.29"
+    val munit      = "0.7.29"
 
-    // Compiler
-    val betterMonadicFor = "0.3.1"
-    val kindProjector    = "0.13.3"
   }
 
   object Libraries {
@@ -25,19 +22,14 @@ object Dependencies {
 
     val circe      = "io.circe"              %% "circe-generic"   % Versions.circe
     val log4cats   = "org.typelevel"         %% "log4cats-slf4j"  % Versions.log4cats
-    val logback    = "ch.qos.logback"        % "logback-classic"  % Versions.logBackVersion
-    val pureConfig = "com.github.pureconfig" %% "pureconfig"      % Versions.pureConfig
-
+    val logback    = "ch.qos.logback"        % "logback-classic"  % Versions.logBack
+    val slf4jApi   = "org.slf4j"             % "slf4j-api"        % Versions.slf4j
+    val pureConfig = "com.github.pureconfig" %% "pureconfig-core" % Versions.pureConfig
   }
 
   object TestLibraries {
     // Scala
     val munit = "org.scalameta" %% "munit" % Versions.munit % Test
-  }
-
-  object CompilerPlugins { // Compiler plugins
-    val betterMonadicFor = compilerPlugin("com.olegpy" %% "better-monadic-for" % Versions.betterMonadicFor)
-    val kindProjector    = compilerPlugin("org.typelevel" %% "kind-projector" % Versions.kindProjector cross CrossVersion.full)
   }
 
 }

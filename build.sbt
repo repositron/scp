@@ -2,9 +2,8 @@ import Dependencies._
 
 lazy val root= (project in file("."))
   .settings(
-    scalaVersion := "2.13.6",
+    scalaVersion := "3.4.1",
     name := "smartcloud-prices",
-    scalacOptions ~= (_.filterNot(Set("-Xfatal-warnings"))),
     libraryDependencies ++= Seq(
       Libraries.http4s("ember-server"),
       Libraries.http4s("ember-client"),
@@ -14,9 +13,7 @@ lazy val root= (project in file("."))
       Libraries.log4cats,
       Libraries.logback,
       Libraries.pureConfig,
-      TestLibraries.munit,
-      CompilerPlugins.betterMonadicFor,
-      CompilerPlugins.kindProjector
+      TestLibraries.munit
     ),
     testFrameworks += new TestFramework("munit.Framework")
   )

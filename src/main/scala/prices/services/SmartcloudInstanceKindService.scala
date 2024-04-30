@@ -1,12 +1,10 @@
 package prices.services
 
-import cats.implicits._
-import cats.effect._
-import org.http4s._
-import org.http4s.circe._
-
-import prices.data._
-import prices.client._
+import cats.effect.*
+import cats.implicits.*
+import org.http4s.*
+import org.http4s.circe.*
+import prices.data.*
 
 object SmartcloudInstanceKindService {
 
@@ -21,13 +19,13 @@ object SmartcloudInstanceKindService {
       config: Config
   ) extends InstanceKindService[F] {
 
-    implicit val instanceKindsEntityDecoder: EntityDecoder[F, List[String]] = jsonOf[F, List[String]]
+    given EntityDecoder[F, List[String]] = jsonOf[F, List[String]]
 
     val getAllUri = s"${config.baseUri}/instances"
 
     override def getAll(): F[List[InstanceKind]] = {
       List("sc2-micro", "sc2-small", "sc2-medium") // Dummy data. Your implementation should call the smartcloud API.
-        .map(InstanceKind)
+        .map(InstanceKind.apply)
         .pure[F]
     }
 
