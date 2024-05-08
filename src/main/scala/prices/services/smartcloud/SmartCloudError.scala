@@ -13,7 +13,7 @@ case class ServerError(statusCode: Status, message: String) extends SmartCloudEr
 
 object ServerError:
   given Encoder[ServerError] = (a: ServerError) => Json.obj(
-    ("status", Json.fromString(a.statusCode.reason)),
+    ("status", Json.fromInt(a.statusCode.code)),
     ("message", Json.fromString(a.message))
   )
   given [F[_]]: EntityEncoder[F, ServerError] = jsonEncoderOf

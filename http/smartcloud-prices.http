@@ -2,10 +2,17 @@
 GET http://localhost:8080/instance-kinds
 Accept: application/json
 
-### GET request with parameter
+### GET price request with parameter
+GET http://localhost:8080/prices?kind=sc2-micro
+Accept: application/json
+
+### GET price request with unavailable parameter
 GET http://localhost:8080/prices?kind=sc2-microty
 Accept: application/json
 
+### GET price request with missing query param key
+GET http://localhost:8080/prices
+Accept: application/json
 
 ### GET instances from docker
 http://localhost:9999/instances

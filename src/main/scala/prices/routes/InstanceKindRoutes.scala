@@ -27,7 +27,12 @@ final case class InstanceKindRoutes[F[_]: Sync](instanceKindService: InstanceKin
       instanceKindService
         .getKindPrices(kind)
         .flatMap(_.fold(
-          e => InternalServerError(e),
+          e => {
+            if (e.statusCode == Status.NotFound)
+              NotFound(e.copy(message = s"price for $kind not found"))
+            else
+              InternalServerError(e)
+          },
           r => Ok(r)
         ))
 
