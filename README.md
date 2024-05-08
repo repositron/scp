@@ -3,7 +3,7 @@
 ## Assumptions
 * Config doesn't need to be hot loaded
 * Assumes app is run within a firewire, internally, and doesn't require SSL or authentication
-
+* Double is sufficient to hold the amount/price data
 ## Design
 Does maximum of 5 retries to the SmartCloud client for these http statuses:
 ```   

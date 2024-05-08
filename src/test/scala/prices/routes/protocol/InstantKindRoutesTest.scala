@@ -3,6 +3,7 @@ package prices.routes.protocol
 import cats.data.EitherT
 import cats.effect.IO
 import io.circe.*
+import io.circe.literal.json
 import munit.CatsEffectSuite
 import org.http4s.*
 import org.http4s.Method.GET
@@ -43,9 +44,9 @@ class InstantKindRoutesTest extends CatsEffectSuite:
   import Util.*
 
   val instantKindMockService = makeMockInstanceKindService(List(
-    SmartCloudKindInfoResponse("kind1", 0.444, "2024-05-08T00:35:40.896Z"),
-    SmartCloudKindInfoResponse("kind2", 0.446, "2024-05-08T00:35:40.896Z"),
-    SmartCloudKindInfoResponse("kind3", 0.546, "2024-05-08T00:35:40.896Z"),
+    SmartCloudKindInfoResponse("kind1", 0.444),
+    SmartCloudKindInfoResponse("kind2", 0.446),
+    SmartCloudKindInfoResponse("kind3", 0.546),
   ))
 
   test("instance kinds are return with Ok") {
@@ -53,13 +54,16 @@ class InstantKindRoutesTest extends CatsEffectSuite:
     val route = InstanceKindRoutes(instantKindMockService).route.orNotFound
     val response = route(request)
     assertIO(response.map(_.status), Status.Ok)
-    //assertIO(response.flatMap(decodeToIkResponse), kinds)
+    given EntityDecoder[IO, List[Map[String, String]]] = jsonOf
+    assertIO(response.flatMap(_.as[List[Map[String, String]]]),
+      List(Map("kind" -> "kind1") ,Map("kind" -> "kind2"), Map("kind" -> "kind3")))
   }
 
   test("when smart cloud price available for kind1 response is Ok") {
     val response = priceLookupByKind("kind1", instantKindMockService)
-    assertIO(response.flatMap(r => r.as[SmartCloudKindInfoResponse]),
-      SmartCloudKindInfoResponse("kind1", 0.444, "2024-05-08T00:35:40.896Z"))
+    given EntityDecoder[IO, List[String]] = jsonOf
+    assertIO(response.map(_.status), Status.Ok)
+    assertIO(response.flatMap(_.as[String]), """{"kind":"kind1","amount":0.444}""")
   }
 
   test("when kind parameter is not available the response with NotFound") {

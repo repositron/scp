@@ -18,12 +18,11 @@ import prices.config.Config.RootConfig
 import prices.routes.InstanceKindRoutes
 import prices.services.SmartcloudApiService
 import prices.services.smartcloud.{Retry, SmartCloudClient}
-import cats.implicits._
 
 object Main extends IOApp.Simple {
   given logger[F[_]: Sync]: Logger[F] = Slf4jLogger.getLogger[F]
 
-  private def httpServer[F[_] : Async : Network](config: RootConfig, routes: HttpRoutes[F]): Resource[F, Server] =
+  private def httpServer[F[_] : Async](config: RootConfig, routes: HttpRoutes[F]): Resource[F, Server] =
     def errorHandler(t: Throwable, msg: => String) : OptionT[F, Unit] =
       OptionT.liftF(
         Logger[F].error(t)(msg)
