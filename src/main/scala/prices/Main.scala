@@ -3,7 +3,6 @@ package prices
 import cats.data.OptionT
 import cats.effect.*
 import cats.effect.kernel.Async
-import cats.effect.std.Console
 import com.comcast.ip4s.{Host, Port}
 import fs2.io.net.Network
 import org.http4s.HttpRoutes
@@ -17,17 +16,17 @@ import org.typelevel.log4cats.slf4j.Slf4jLogger
 import prices.config.Config
 import prices.config.Config.RootConfig
 import prices.routes.InstanceKindRoutes
-import prices.services.SmartcloudInstanceKindService
+import prices.services.SmartcloudApiService
 import prices.services.smartcloud.{Retry, SmartCloudClient}
+import cats.implicits._
 
 object Main extends IOApp.Simple {
-  given [F[_] : Sync]: Logger[F] = Slf4jLogger.getLogger[F]
-
+  given logger[F[_]: Sync]: Logger[F] = Slf4jLogger.getLogger[F]
 
   private def httpServer[F[_] : Async : Network](config: RootConfig, routes: HttpRoutes[F]): Resource[F, Server] =
     def errorHandler(t: Throwable, msg: => String) : OptionT[F, Unit] =
       OptionT.liftF(
-            Logger[F].error(t)(msg)
+        Logger[F].error(t)(msg)
       )
 
     val withErrorLogging = ErrorHandling.Recover.total(
@@ -45,19 +44,18 @@ object Main extends IOApp.Simple {
       .withHttpApp(withErrorLogging.orNotFound)
       .build
 
-
-  def makeApp[F[_]: Async: Console: Network]: F[Nothing]  = {
+  def makeApp[F[_]: Async]: F[Nothing]  = {
     for {
       emberClient <- EmberClientBuilder.default[F].build
       config <- Config.load
       client = SmartCloudClient.make[F](config, Retry.make[F].apply(emberClient))
-      kindService = SmartcloudInstanceKindService.make[F](client)
+      kindService = SmartcloudApiService.make[F](client)
       routes = InstanceKindRoutes[F](kindService).route
       _ <- httpServer(config, routes)
     } yield ()
   }.useForever
 
   def run: IO[Unit] = {
-    makeApp[IO]//.use(_ => IO.never)
+    makeApp[IO]
   }
 }

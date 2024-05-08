@@ -10,30 +10,30 @@ import org.http4s.circe.*
 import org.http4s.implicits.*
 import prices.data.InstanceKind
 import prices.routes.InstanceKindRoutes
-import prices.services.InstanceKindService
+import prices.services.SmartcloudApiService
 import prices.services.smartcloud.ServerError
 
 class InstantKindRoutesTest extends CatsEffectSuite:
   object Util:
     def decodeToIkResponse(r: Response[IO]): IO[List[InstanceKindResponse]] = {
-      given  EntityDecoder[IO, List[String]] = jsonOf
+      given EntityDecoder[IO, List[String]] = jsonOf
       r.as[List[String]].map((kinds: List[String]) => kinds.map(k => InstanceKindResponse(InstanceKind(k))))
     }
 
-    def priceLookup(uriStr: String, service: InstanceKindService[IO]): IO[Response[IO]] = {
+    def priceLookup(uriStr: String, service: SmartcloudApiService[IO]): IO[Response[IO]] = {
       val uri = Uri.unsafeFromString(uriStr)
       val request = Request[IO](Method.GET, uri)
       val route = InstanceKindRoutes(service).route.orNotFound
       route(request)
     }
-    def priceLookupByKind(kind: String, service: InstanceKindService[IO]): IO[Response[IO]] = {
+    def priceLookupByKind(kind: String, service: SmartcloudApiService[IO]): IO[Response[IO]] = {
       priceLookup(s"/prices?kind=$kind", service)
     }
 
-     def makeMockInstanceKindService(kindInfoList: List[SmartCloudKindInfoResponse]): InstanceKindService[IO] = {
+     def makeMockInstanceKindService(kindInfoList: List[SmartCloudKindInfoResponse]): SmartcloudApiService[IO] = {
        val kindResponse = kindInfoList.map(_.kind).map(s => InstanceKindResponse(InstanceKind(s)))
        val kindInfo = kindInfoList.map(i => i.kind ->  i).toMap
-       new InstanceKindService[IO]:
+       new SmartcloudApiService[IO]:
          def getKindPrices(kind: String): IO[Either[ServerError, SmartCloudKindInfoResponse]] =
            EitherT.fromOption[IO](kindInfo.get(kind), ServerError(Status.NotFound, "instance.kind.invalid")).value
 

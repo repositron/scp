@@ -11,10 +11,10 @@ import org.http4s.dsl.io.*
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import prices.routes.protocol.InstanceKindResponse
-import prices.services.InstanceKindService
+import prices.services.SmartcloudApiService
 import prices.services.smartcloud.ServerError
 
-final case class InstanceKindRoutes[F[_]: Sync](instanceKindService: InstanceKindService[F]) extends Http4sDsl[F] {
+final case class InstanceKindRoutes[F[_]: Sync](instanceKindService: SmartcloudApiService[F]) extends Http4sDsl[F] {
   given routesLogger: Logger[F] = Slf4jLogger.getLogger[F]
 
   object KindQueryMatcher extends QueryParamDecoderMatcher[String]("kind")

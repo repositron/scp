@@ -1,10 +1,23 @@
 # Smartcloud instance prices API
 
 ## Assumptions
-* Config doesn't need to hot loaded
+* Config doesn't need to be hot loaded
+* Assumes app is run within a firewire, internally, and doesn't require SSL or authentication
 
 ## Design
+Does maximum of 5 retries to the SmartCloud client for these http statuses:
+```   
+ Status.BadGateway,
+ Status.ServiceUnavailable,
+ Status.GatewayTimeout
+```
+If the SmartCloud client responds with an error it is wrapped 500 Internal Server Error and returned to user
 
+## How to run
+```
+docker-compose up
+sbt run
+```
 
 **Important: Do NOT fork this repository if you want to submit a solution.**
 
