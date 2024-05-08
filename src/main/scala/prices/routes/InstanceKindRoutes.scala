@@ -2,27 +2,43 @@ package prices.routes
 
 import cats.effect.*
 import cats.implicits.*
+import io.circe.*
+import org.http4s.*
 import org.http4s.circe.*
 import org.http4s.dsl.Http4sDsl
-import org.http4s.server.Router
-import org.http4s.{EntityEncoder, HttpRoutes}
+import org.http4s.dsl.impl.QueryParamDecoderMatcher
+import org.http4s.dsl.io.*
+import org.typelevel.log4cats.Logger
+import org.typelevel.log4cats.slf4j.Slf4jLogger
+import prices.routes.protocol.InstanceKindResponse
 import prices.services.InstanceKindService
+import prices.services.smartcloud.ServerError
 
 final case class InstanceKindRoutes[F[_]: Sync](instanceKindService: InstanceKindService[F]) extends Http4sDsl[F] {
+  given routesLogger: Logger[F] = Slf4jLogger.getLogger[F]
 
-  val prefix = "/instance-kinds"
+  object KindQueryMatcher extends QueryParamDecoderMatcher[String]("kind")
 
-  import protocol.*
+  given EntityEncoder[F, InstanceKindResponse] = jsonEncoderOf
   given EntityEncoder[F, List[InstanceKindResponse]] = jsonEncoderOf
 
-  private val get: HttpRoutes[F] = HttpRoutes.of {
-    case GET -> Root =>
-      instanceKindService.getAll().flatMap(kinds => Ok(kinds.map(k => InstanceKindResponse(k))))
+  val route: HttpRoutes[F] = HttpRoutes.of {
+    case GET -> Root / "prices" :? KindQueryMatcher(kind) =>
+      instanceKindService
+        .getKindPrices(kind)
+        .flatMap(_.fold(
+          e => InternalServerError(e),
+          r => Ok(r)
+        ))
+
+    case GET -> Root / "prices" =>
+      BadRequest("Missing required 'kind' query parameter")
+
+    case GET -> Root / "instance-kinds" =>
+      instanceKindService.getAllKinds
+        .flatMap(_.fold(
+          e => InternalServerError(e),
+          r => Ok(r)
+      ))
   }
-
-  def routes: HttpRoutes[F] =
-    Router(
-      prefix -> get
-    )
-
 }

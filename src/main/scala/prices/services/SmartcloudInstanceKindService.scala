@@ -1,32 +1,33 @@
 package prices.services
 
-import cats.effect.*
+import cats.effect.{Async, Sync}
 import cats.implicits.*
-import org.http4s.*
-import org.http4s.circe.*
-import prices.data.*
+import prices.routes.protocol.{InstanceKindResponse, SmartCloudKindInfoResponse}
+import org.typelevel.log4cats.Logger
+import org.typelevel.log4cats.slf4j.Slf4jLogger
+import prices.services.smartcloud.*
 
 object SmartcloudInstanceKindService {
-
+  given [F[_] : Sync]: Logger[F] = Slf4jLogger.getLogger[F]
   final case class Config(
       baseUri: String,
       token: String
   )
 
-  def make[F[_]: Concurrent](config: Config): InstanceKindService[F] = new SmartcloudInstanceKindService(config)
+  def make[F[_]: Sync: Async](smartCloudClient: SmartCloudClient[F]): InstanceKindService[F]
+    = new SmartcloudInstanceKindService(smartCloudClient)
 
-  private final class SmartcloudInstanceKindService[F[_]: Concurrent](
-      config: Config
+  private final class SmartcloudInstanceKindService[F[_]: Sync: Async](
+      smartCloudClient: SmartCloudClient[F]
   ) extends InstanceKindService[F] {
 
-    given EntityDecoder[F, List[String]] = jsonOf[F, List[String]]
+    
+    override def getKindPrices(kind: String): F[Either[ServerError, SmartCloudKindInfoResponse]] = {
+      smartCloudClient.getKindPrices(kind)
+    }
 
-    val getAllUri = s"${config.baseUri}/instances"
-
-    override def getAll(): F[List[InstanceKind]] = {
-      List("sc2-micro", "sc2-small", "sc2-medium") // Dummy data. Your implementation should call the smartcloud API.
-        .map(InstanceKind.apply)
-        .pure[F]
+    override def getAllKinds: F[Either[ServerError, List[InstanceKindResponse]]]= {
+      smartCloudClient.getAllKinds
     }
 
   }

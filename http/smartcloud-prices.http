@@ -1,3 +1,19 @@
-### GET request with parameter
+### GET all
 GET http://localhost:8080/instance-kinds
 Accept: application/json
+
+### GET request with parameter
+GET http://localhost:8080/prices?kind=sc2-microty
+Accept: application/json
+
+
+### GET instances from docker
+http://localhost:9999/instances
+Accept: application/json
+Authorization: Bearer lxwmuKofnxMxz6O2QE1Ogh
+
+
+### GET instance from docker
+http://localhost:9999/instances/sc2-std-2
+Accept: application/json
+Authorization: Bearer lxwmuKofnxMxz6O2QE1Ogh

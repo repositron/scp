@@ -1,5 +1,11 @@
 # Smartcloud instance prices API
 
+## Assumptions
+* Config doesn't need to hot loaded
+
+## Design
+
+
 **Important: Do NOT fork this repository if you want to submit a solution.**
 
 Imagine we run our infrastructure on a fictional cloud provider, Smartcloud. As their machine instance prices fluctuate all the time, Smartcloud provides an API for us to retrieve their prices in real time. This helps us in managing our cost.

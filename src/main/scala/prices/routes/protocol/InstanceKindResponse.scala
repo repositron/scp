@@ -5,7 +5,7 @@ import io.circe.syntax._
 
 import prices.data._
 
-case class InstanceKindResponse(value: InstanceKind)
+final case class InstanceKindResponse(value: InstanceKind)
 
 object InstanceKindResponse {
 

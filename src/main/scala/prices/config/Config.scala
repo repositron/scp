@@ -1,5 +1,6 @@
 package prices.config
 
+import cats.effect.Resource
 import cats.effect.kernel.Sync
 import pureconfig.*
 import pureconfig.generic.derivation.default.*
@@ -16,15 +17,14 @@ object Config {
       token: String
   )
   
-  case class Config(
-    app: AppConfig, 
+  case class RootConfig(
+    app: AppConfig,
     smartcloud: SmartcloudConfig
  )
 
-  given ConfigReader[Config] = ConfigReader.derived[Config]
+  given ConfigReader[RootConfig] = ConfigReader.derived[RootConfig]
 
-  def load[F[_]: Sync]: F[Config] = {
-    Sync[F].delay(ConfigSource.default.loadOrThrow[Config])
-    
+  def load[F[_]: Sync]: Resource[F, RootConfig] = {
+    Resource.eval(Sync[F].delay(ConfigSource.default.loadOrThrow[RootConfig]))
   }
 }

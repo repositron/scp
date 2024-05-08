@@ -1,11 +1,14 @@
 package prices.services
 
+import cats.effect.{Async, Sync}
+
 import scala.util.control.NoStackTrace
+import prices.routes.protocol.{InstanceKindResponse, SmartCloudKindInfoResponse}
+import prices.services.smartcloud.ServerError
 
-import prices.data._
-
-trait InstanceKindService[F[_]] {
-  def getAll(): F[List[InstanceKind]]
+trait InstanceKindService[F[_]: Sync: Async] {
+  def getKindPrices(kind: String): F[Either[ServerError, SmartCloudKindInfoResponse]]
+  def getAllKinds: F[Either[ServerError, List[InstanceKindResponse]]]
 }
 
 object InstanceKindService {
