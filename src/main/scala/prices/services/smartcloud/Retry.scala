@@ -10,7 +10,6 @@ object Retry:
   def make[F[_]: Sync: Async]: Client[F] => Client[F] = {
 
     val retryStatusCodes = Set(
-      Status.TooManyRequests,
       Status.BadGateway,
       Status.ServiceUnavailable,
       Status.GatewayTimeout
