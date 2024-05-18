@@ -37,44 +37,36 @@ object SmartCloudClient:
       Request[F](method = GET, uri = uri, headers = headers)
     }
 
-    new SmartCloudClient[F]:
+    new SmartCloudClient[F] {
       override def getKindPrices(kind: String): F[Either[ServerError, SmartCloudKindInfoResponse]] = {
-        Uri.fromString(config.smartcloud.baseUri)
-          .map(_ / "instances" / kind)
-          .liftTo[F]
-          .flatMap { uri =>
-            val request = getRequest(uri, config.smartcloud.token)
-            client.run(request).use { response => {
-              if (response.status.isSuccess) {
-                response.as[SmartCloudKindInfoResponse].map(Right(_))
-              } else {
-                EitherT.leftT[F, SmartCloudKindInfoResponse](ServerError(response.status, response.status.reason))
-                  .leftMap(error => error).value
-              }
-            }
+        for {
+          uri <- Uri.fromString(config.smartcloud.baseUri)
+            .map(_ / "instances" / kind)
+            .liftTo[F]
+          request = getRequest(uri, config.smartcloud.token)
+          response <- client.run(request).use { resp =>
+            if (resp.status.isSuccess)
+              resp.as[SmartCloudKindInfoResponse].map(Right(_))
+            else
+              Sync[F].pure(Left[ServerError, SmartCloudKindInfoResponse](ServerError(resp.status, resp.status.reason)))
           }
-        }
+        } yield response
       }
 
       override def getAllKinds: F[Either[ServerError, List[InstanceKindResponse]]] = {
-        Uri.fromString(config.smartcloud.baseUri)
-          .map(_ / "instances")
-          .liftTo[F]
-          .flatMap { uri =>
-            val request = getRequest(uri, config.smartcloud.token)
-            client.run(request).use { response => {
-              if (response.status.isSuccess) {
-                // circe needs this mapping so it can decode to InstanceKindResponse
-                response.as[List[String]].map((kinds: List[String]) => Right(kinds.map(k => InstanceKindResponse(InstanceKind(k)))))
-              } else {
-                EitherT.leftT[F, List[InstanceKindResponse]](ServerError(response.status, response.status.reason))
-                  .leftMap(error => error).value
-              }
-            }
+        for {
+          uri <- Uri.fromString(config.smartcloud.baseUri)
+            .map(_ / "instances")
+            .liftTo[F]
+          request = getRequest(uri, config.smartcloud.token)
+          response <- client.run(request).use { resp =>
+            if resp.status.isSuccess then
+              resp.as[List[String]].map((kinds: List[String]) => Right(kinds.map(k => InstanceKindResponse(InstanceKind(k)))))
+            else
+              Sync[F].pure(Left[ServerError, List[InstanceKindResponse]](ServerError(resp.status, resp.status.reason)))
           }
-        }
+        } yield response
       }
     }
-
-
+  }
 
