@@ -22,7 +22,7 @@ import prices.services.smartcloud.{Retry, SmartCloudClient}
 object Main extends IOApp.Simple {
   given logger[F[_]: Sync]: Logger[F] = Slf4jLogger.getLogger[F]
 
-  private def httpServer[F[_] : Async](config: RootConfig, routes: HttpRoutes[F]): Resource[F, Server] =
+  private def httpServer[F[_] : Async: Network](config: RootConfig, routes: HttpRoutes[F]): Resource[F, Server] =
     def errorHandler(t: Throwable, msg: => String) : OptionT[F, Unit] =
       OptionT.liftF(
         Logger[F].error(t)(msg)
@@ -43,7 +43,7 @@ object Main extends IOApp.Simple {
       .withHttpApp(withErrorLogging.orNotFound)
       .build
 
-  def makeApp[F[_]: Async]: F[Nothing]  = {
+  private def makeApp[F[_]: Async: Network]: F[Nothing]  = {
     for {
       emberClient <- EmberClientBuilder.default[F].build
       config <- Config.load

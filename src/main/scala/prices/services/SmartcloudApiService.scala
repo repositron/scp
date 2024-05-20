@@ -3,12 +3,12 @@ package prices.services
 import cats.effect.{Async, Sync}
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
-import prices.routes.protocol.{InstanceKindResponse, SmartCloudKindInfoResponse}
+import prices.routes.protocol.SmartCloudKindInfoResponse
 import prices.services.smartcloud.*
 
 trait SmartcloudApiService[F[_] : Sync : Async] {
   def getKindPrices(kind: String): F[Either[ServerError, SmartCloudKindInfoResponse]]
-  def getAllKinds: F[Either[ServerError, List[InstanceKindResponse]]]
+  def getAllKinds: F[Either[ServerError, List[String]]]
 }
 
 object SmartcloudApiService:
@@ -20,7 +20,7 @@ object SmartcloudApiService:
         smartCloudClient.getKindPrices(kind)
       }
 
-      override def getAllKinds: F[Either[ServerError, List[InstanceKindResponse]]] = {
+      override def getAllKinds: F[Either[ServerError, List[String]]] = {
         smartCloudClient.getAllKinds
       }
   }

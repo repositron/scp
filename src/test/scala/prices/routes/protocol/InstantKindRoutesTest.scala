@@ -3,13 +3,11 @@ package prices.routes.protocol
 import cats.data.EitherT
 import cats.effect.IO
 import io.circe.*
-import io.circe.literal.json
 import munit.CatsEffectSuite
 import org.http4s.*
 import org.http4s.Method.GET
 import org.http4s.circe.*
 import org.http4s.implicits.*
-import prices.data.InstanceKind
 import prices.routes.InstanceKindRoutes
 import prices.services.SmartcloudApiService
 import prices.services.smartcloud.ServerError
@@ -18,7 +16,7 @@ class InstantKindRoutesTest extends CatsEffectSuite:
   object Util:
     def decodeToIkResponse(r: Response[IO]): IO[List[InstanceKindResponse]] = {
       given EntityDecoder[IO, List[String]] = jsonOf
-      r.as[List[String]].map((kinds: List[String]) => kinds.map(k => InstanceKindResponse(InstanceKind(k))))
+      r.as[List[String]].map((kinds: List[String]) => kinds.map(k => InstanceKindResponse(k)))
     }
 
     def priceLookup(uriStr: String, service: SmartcloudApiService[IO]): IO[Response[IO]] = {
@@ -32,13 +30,13 @@ class InstantKindRoutesTest extends CatsEffectSuite:
     }
 
      def makeMockInstanceKindService(kindInfoList: List[SmartCloudKindInfoResponse]): SmartcloudApiService[IO] = {
-       val kindResponse = kindInfoList.map(_.kind).map(s => InstanceKindResponse(InstanceKind(s)))
+       val kindResponse = kindInfoList.map(_.kind)
        val kindInfo = kindInfoList.map(i => i.kind ->  i).toMap
        new SmartcloudApiService[IO]:
          def getKindPrices(kind: String): IO[Either[ServerError, SmartCloudKindInfoResponse]] =
            EitherT.fromOption[IO](kindInfo.get(kind), ServerError(Status.NotFound, "instance.kind.invalid")).value
 
-         def getAllKinds: IO[Either[ServerError, List[InstanceKindResponse]]] =
+         def getAllKinds: IO[Either[ServerError, List[String]]] =
            EitherT.rightT[IO, ServerError](kindResponse).value
      }
   import Util.*
@@ -61,7 +59,6 @@ class InstantKindRoutesTest extends CatsEffectSuite:
 
   test("when smart cloud price available for kind1 response is Ok") {
     val response = priceLookupByKind("kind1", instantKindMockService)
-    given EntityDecoder[IO, List[String]] = jsonOf
     assertIO(response.map(_.status), Status.Ok)
     assertIO(response.flatMap(_.as[String]), """{"kind":"kind1","amount":0.444}""")
   }

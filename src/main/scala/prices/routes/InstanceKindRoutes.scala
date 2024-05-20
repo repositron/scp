@@ -10,7 +10,7 @@ import org.http4s.dsl.impl.QueryParamDecoderMatcher
 import org.http4s.dsl.io.*
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
-import prices.routes.protocol.InstanceKindResponse
+import prices.routes.protocol.SmartCloudKindInfoResponse
 import prices.services.SmartcloudApiService
 import prices.services.smartcloud.ServerError
 
@@ -19,9 +19,9 @@ final case class InstanceKindRoutes[F[_]: Sync](instanceKindService: SmartcloudA
 
   object KindQueryMatcher extends QueryParamDecoderMatcher[String]("kind")
 
-  given EntityEncoder[F, InstanceKindResponse] = jsonEncoderOf
-  given EntityEncoder[F, List[InstanceKindResponse]] = jsonEncoderOf
+  given EntityEncoder[F, List[Map[String, String]]] = jsonEncoderOf
 
+  given [F[_]]: EntityEncoder[F, SmartCloudKindInfoResponse] = jsonEncoderOf
   val route: HttpRoutes[F] = HttpRoutes.of {
     case GET -> Root / "prices" :? KindQueryMatcher(kind) =>
       instanceKindService
@@ -43,7 +43,7 @@ final case class InstanceKindRoutes[F[_]: Sync](instanceKindService: SmartcloudA
       instanceKindService.getAllKinds
         .flatMap(_.fold(
           e => InternalServerError(e),
-          r => Ok(r)
+          r => Ok(r.map(kind => Map("kind" -> kind)))
       ))
   }
 }
